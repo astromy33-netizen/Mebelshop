@@ -72,8 +72,14 @@ export const FavoriteButton = ({ productId, variant = 'default' }) => {
 
   const baseClasses = variant === 'light'
     ? 'w-10 h-10 rounded-full bg-white/70 border border-white/60 backdrop-blur text-white/90 shadow-sm'
-    : 'w-10 h-10 rounded-full border border-white/10 backdrop-blur text-white/80 bg-slate-900/70 shadow-sm';
-  const hoverClasses = variant === 'light' ? 'hover:bg-white/85' : 'hover:bg-slate-900/85';
+    : variant === 'ghost'
+      ? 'w-10 h-10 rounded-full border border-slate-200/80 bg-white/0 text-slate-500/80 shadow-sm'
+      : 'w-10 h-10 rounded-full border border-white/10 backdrop-blur text-white/80 bg-slate-900/70 shadow-sm';
+  const hoverClasses = variant === 'light'
+    ? 'hover:bg-white/85'
+    : variant === 'ghost'
+      ? 'hover:bg-white/80 hover:text-slate-900'
+      : 'hover:bg-slate-900/85';
 
   return (
     <button

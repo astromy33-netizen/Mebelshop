@@ -25,7 +25,7 @@ export const AddToCartButton = ({ product, variant = 'default' }) => {
     return (
       <button
         onClick={handleAdd}
-        className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-sm"
+        className="w-full px-4 py-2 bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 text-slate-950 rounded-lg font-semibold text-sm shadow-[0_14px_30px_-18px_rgba(249,115,22,0.7)] hover:shadow-[0_18px_40px_-18px_rgba(244,63,94,0.65)] hover:-translate-y-0.5 transition-all"
       >
         {t('product.addToCart')}
       </button>

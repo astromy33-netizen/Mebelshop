@@ -1,419 +1,248 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useLanguage } from '../context/LanguageContext';
-import { useCart } from '../context/CartContext';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import * as productsAPI from '../api/products';
-import * as reviewsAPI from '../api/reviews';
-import * as usersAPI from '../api/users';
-import { SkeletonList } from '../components/SkeletonList';
-import { RatingStars } from '../components/RatingStars';
-import { FavoriteButton } from '../components/FavoriteButton';
+import { ProductCard } from '../components/ProductCard';
+import { SkeletonCard } from '../components/SkeletonCard';
 import { getProductId } from '../utils/productId';
 
-export const Home = () => {
-  const { t, i18n } = useTranslation();
-  const { currentLanguage } = useLanguage();
-  const { addToCart } = useCart();
-  const lang = currentLanguage;
-  const [popularProducts, setPopularProducts] = useState([]);
-  const [reviews, setReviews] = useState([]);
+export const Home = ({ products } = {}) => {
+  const navigate = useNavigate();
+  const [query, setQuery] = useState('');
+  const [topProducts, setTopProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [reviewsLoading, setReviewsLoading] = useState(true);
+
   useEffect(() => {
-    loadData();
-  }, []);
+    let active = true;
+    const hasPropProducts = Array.isArray(products);
 
-  const loadData = async () => {
-    await Promise.all([loadPopularProducts(), loadReviews()]);
-  };
-
-  const loadPopularProducts = async () => {
-    try {
-      const allProducts = await productsAPI.getAll();
-      
-      //    (  = )
-      const sorted = allProducts.sort((a, b) => {
-        const ratingA = a.ratingAvg || 0;
-        const ratingB = b.ratingAvg || 0;
-        
-        if (ratingA !== ratingB) {
-          return ratingB - ratingA;
-        }
-        
-        const dateA = new Date(a.createdAt || 0);
-        const dateB = new Date(b.createdAt || 0);
-        return dateB - dateA;
-      });
-      
-      setPopularProducts(sorted.slice(0, 6));
-    } catch (error) {
-      console.error('Error loading popular products:', error);
-    } finally {
+    if (hasPropProducts) {
+      setTopProducts(products.slice(0, 8));
       setLoading(false);
+      return () => {
+        active = false;
+      };
     }
-  };
 
-  const loadReviews = async () => {
-    try {
-      const allReviews = await reviewsAPI.getAll();
-      //   3    
-      const sortedReviews = allReviews
-        .sort((a, b) => {
-          const ratingA = a.rating || 0;
-          const ratingB = b.rating || 0;
-          if (ratingA !== ratingB) return ratingB - ratingA;
-          const dateA = new Date(a.createdAt || 0);
-          const dateB = new Date(b.createdAt || 0);
-          return dateB - dateA;
-        })
-        .slice(0, 3);
+    const loadProducts = async () => {
+      try {
+        const allProducts = await productsAPI.getAll();
+        if (!active) return;
+        setTopProducts(allProducts.slice(0, 8));
+      } catch (error) {
+        console.error('Error loading products:', error);
+        if (active) setTopProducts([]);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
 
-      const reviewsWithUsers = await Promise.all(
-        sortedReviews.map(async (review) => {
-          try {
-            const reviewUser = await usersAPI.getById(review.userId);
-            return { 
-              ...review, 
-              userName: reviewUser.fullName || reviewUser.email || t('common.anonymous'),
-              userInitial: (reviewUser.fullName || reviewUser.email || 'A').charAt(0).toUpperCase()
-            };
-          } catch {
-            return { 
-              ...review, 
-              userName: t('common.anonymous'),
-              userInitial: 'A'
-            };
-          }
-        })
-      );
+    loadProducts();
 
-      setReviews(reviewsWithUsers);
-    } catch (error) {
-      console.error('Error loading reviews:', error);
-    } finally {
-      setReviewsLoading(false);
-    }
-  };
+    return () => {
+      active = false;
+    };
+  }, [products]);
 
-  const handleAddToCart = (product, e) => {
+  const featured = useMemo(() => {
+    if (!Array.isArray(products)) return topProducts;
+    return products.slice(0, 8);
+  }, [products, topProducts]);
+
+  const categories = [
+    {
+      id: 'sofa',
+      title: 'Диван',
+      image:
+        'https://images.unsplash.com/photo-1501045661006-fcebe0257c3f?q=80&w=1400&auto=format&fit=crop',
+    },
+    {
+      id: 'bed',
+      title: 'Керебет',
+      image:
+        'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1400&auto=format&fit=crop',
+    },
+    {
+      id: 'table',
+      title: 'Стол',
+      image:
+        'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?q=80&w=1400&auto=format&fit=crop',
+    },
+    {
+      id: 'chair',
+      title: 'Отургуч',
+      image:
+        'https://images.unsplash.com/photo-1503602642458-232111445657?q=80&w=1400&auto=format&fit=crop',
+    },
+  ];
+
+  const onSearch = (e) => {
     e.preventDefault();
-    e.stopPropagation();
-    addToCart(product);
+    const value = query.trim();
+    if (!value) return;
+    navigate(`/catalog?search=${encodeURIComponent(value)}`);
   };
-
-  const translateCategory = (category) => {
-    return t(`category.${category}`);
-  };
-
-    const categories = [
-    { id: 'sofa', icon: 'S', name: 'sofa' },
-    { id: 'bed', icon: 'B', name: 'bed' },
-    { id: 'table', icon: 'T', name: 'table' },
-    { id: 'chair', icon: 'C', name: 'chair' },
-  ];
-
-    const whyChooseUs = [
-    {
-      icon: 'Q',
-      title: t('home.whyChooseUs.quality.title'),
-      description: t('home.whyChooseUs.quality.desc'),
-    },
-    {
-      icon: 'D',
-      title: t('home.whyChooseUs.delivery.title'),
-      description: t('home.whyChooseUs.delivery.desc'),
-    },
-    {
-      icon: 'S',
-      title: t('home.whyChooseUs.service.title'),
-      description: t('home.whyChooseUs.service.desc'),
-    },
-    {
-      icon: 'C',
-      title: t('home.whyChooseUs.custom.title'),
-      description: t('home.whyChooseUs.custom.desc'),
-    },
-  ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden py-24 sm:py-28">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.12),_transparent_55%)]"></div>
-        <div className="absolute -top-12 -right-20 h-80 w-80 rounded-full bg-amber-400/30 blur-3xl animate-glow-pulse"></div>
-        <div className="absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-rose-500/25 blur-3xl animate-glow-pulse"></div>
-        <div className="absolute inset-0 opacity-20 bg-grid"></div>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-semibold tracking-tight mb-6">
-            <span className="gradient-text">MebelMart</span>
-          </h1>
-          <p className="text-lg sm:text-xl text-slate-300/90 mb-10 max-w-2xl mx-auto">
-            {t('home.subtitle')}
-          </p>
-          <Link
-            to="/catalog"
-            className="inline-flex items-center gap-2 px-10 py-3 rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 text-slate-950 font-semibold shadow-[0_20px_45px_-20px_rgba(249,115,22,0.8)] hover:-translate-y-0.5 hover:shadow-[0_24px_55px_-24px_rgba(244,63,94,0.8)] transition-all duration-300"
-          >
-            {t('nav.catalog')} ->
-          </Link>
+    <div className="bg-slate-50 text-slate-900 font-sans">
+      <section className="relative overflow-hidden min-h-[70vh] flex items-center">
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1484101403633-562f891dc89a?q=80&w=2000&auto=format&fit=crop"
+            alt="Luxury furniture"
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/55 to-slate-950/20"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent"></div>
         </div>
-      </div>
 
-      {/* Categories Section */}
-      <div className="relative py-20">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(251,191,36,0.08),_transparent_60%)]"></div>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-semibold text-white mb-4">
-              {t('home.categories')}
-            </h2>
-            <p className="text-slate-300/80 max-w-xl mx-auto">
-              {t('home.categoriesDesc')}
-            </p>
+        <div className="relative z-10 w-full">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-10 py-20">
+            <div className="max-w-3xl">
+              <p className="text-amber-300 text-sm uppercase tracking-[0.25em] mb-4">
+                MebelMart
+              </p>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-white mb-6">
+                Luxury мебель для дома
+              </h1>
+              <p className="text-lg sm:text-xl text-slate-200/90 max-w-2xl mb-8">
+                Эстетика, комфорт и премиальные материалы — подберите мебель под
+                ваш стиль и ритм жизни.
+              </p>
+
+              <form
+                onSubmit={onSearch}
+                className="flex flex-col sm:flex-row gap-3 bg-white/95 rounded-2xl p-2 max-w-xl shadow-[0_18px_40px_-30px_rgba(15,23,42,0.6)]"
+              >
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Поиск по каталогу"
+                  className="flex-1 px-4 py-3 rounded-xl text-slate-900 outline-none placeholder:text-slate-400"
+                />
+                <button
+                  type="submit"
+                  className="px-5 py-3 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 transition-colors"
+                >
+                  Найти
+                </button>
+              </form>
+
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  to="/catalog"
+                  className="px-6 py-3 rounded-full bg-amber-400 text-slate-900 font-semibold hover:bg-amber-300 transition-colors"
+                >
+                  Перейти в каталог
+                </Link>
+                <a
+                  href="#top"
+                  className="px-6 py-3 rounded-full border border-white/40 text-white font-semibold hover:border-white/70 hover:bg-white/10 transition-colors"
+                >
+                  Топ товары
+                </a>
+              </div>
+
+              <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {['Доставка 24ч', 'Гарантия 1 год', 'Возврат 14 дней'].map(
+                  (item) => (
+                    <div
+                      key={item}
+                      className="px-4 py-3 rounded-xl bg-white/10 text-white text-sm border border-white/15 backdrop-blur-sm"
+                    >
+                      {item}
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        </div>
+      </section>
+
+      <section className="py-16">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-10">
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight">
+                Категории
+              </h2>
+              <p className="text-slate-600 mt-2">
+                Быстрый доступ к самым востребованным группам мебели.
+              </p>
+            </div>
+            <Link
+              to="/catalog"
+              className="text-slate-900 font-semibold hover:text-slate-700"
+            >
+              Смотреть все
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {categories.map((category) => (
               <Link
                 key={category.id}
-                to={`/catalog?category=${category.id}`}
-                className="group surface rounded-3xl overflow-hidden hover:-translate-y-2 hover:shadow-[0_30px_70px_-40px_rgba(15,23,42,0.9)] transition-all duration-300"
+                to={`/catalog?category=${encodeURIComponent(category.id)}`}
+                className="group relative overflow-hidden rounded-3xl h-64 bg-slate-200"
               >
-                <div className="aspect-square relative">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(248,250,252,0.08),_transparent_60%)]"></div>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-amber-400/20 via-orange-500/20 to-rose-500/20 border border-white/10 flex items-center justify-center text-5xl group-hover:scale-110 transition-transform duration-300">
-                      {category.icon}
-                    </div>
-                  </div>
-                  <div className="absolute bottom-0 left-0 right-0 bg-slate-950/80 backdrop-blur p-4 text-center">
-                    <h3 className="text-white font-semibold tracking-tight">
-                      {translateCategory(category.name)}
-                    </h3>
-                  </div>
+                <img
+                  src={category.image}
+                  alt={category.title}
+                  className="absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-slate-900/15 to-transparent"></div>
+                <div className="absolute bottom-0 left-0 right-0 p-5">
+                  <span className="inline-flex items-center gap-2 text-white font-semibold text-lg">
+                    {category.title}
+                  </span>
                 </div>
               </Link>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Popular Products Section */}
-      <div className="relative py-20">
-        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top,_rgba(244,63,94,0.08),_transparent_55%)]"></div>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-10">
+      <section id="top" className="py-16 bg-white">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-10">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-semibold text-white mb-2">
-                {t('home.popularProducts')}
+              <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight">
+                Топ товары недели
               </h2>
-              <p className="text-slate-300/80 max-w-xl">
-                {t('home.popularProductsDesc')}
+              <p className="text-slate-600 mt-2">
+                Самые популярные позиции, которые выбирают наши покупатели.
               </p>
             </div>
             <Link
               to="/catalog"
-              className="inline-flex items-center gap-2 text-amber-300 hover:text-amber-200 font-semibold transition-colors"
+              className="inline-flex items-center justify-center px-5 py-3 rounded-full border border-slate-200 text-slate-900 font-semibold hover:bg-slate-900 hover:text-white transition-colors"
             >
-              {t('home.viewAllProducts')} ->
+              Смотреть все
             </Link>
           </div>
 
-          {loading ? (
-            <SkeletonList count={4} />
-          ) : popularProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {popularProducts.map((product) => {
-                const productId = getProductId(product);
-                return (
-                  <div key={productId || product.id} className="group relative overflow-hidden rounded-[22px] bg-white border border-gray-200 shadow-[0_18px_40px_-30px_rgba(15,23,42,0.35)] transition-all duration-300 hover:-translate-y-1">
-                    <div className="relative h-64 overflow-hidden bg-gray-50">
-                      {product.cover ? (
-                        <img
-                          src={product.cover}
-                          alt={product[`title${lang.charAt(0).toUpperCase() + lang.slice(1)}`] || product.titleKg}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-4xl">
-                          IMG
-                        </div>
-                      )}
-                      <div className="absolute top-3 right-3">
-                        <FavoriteButton productId={productId} variant="light" />
-                      </div>
-                    </div>
-                    <div className="p-5">
-                      <div className="mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-1">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <span
-                                key={i}
-                                className={`text-sm ${
-                                  i < Math.floor(product.ratingAvg || 0)
-                                    ? 'text-amber-300'
-                                    : 'text-slate-700'
-                                }`}
-                              >
-                                *
-                              </span>
-                            ))}
-                          </div>
-                          <span className="text-slate-400 text-sm">
-                            {product.ratingAvg?.toFixed(1) || '0.0'}
-                          </span>
-                        </div>
-                      </div>
-                      {productId ? (
-                        <Link to={`/product/${productId}`}>
-                          <h3 className="text-gray-900 font-semibold mb-3 hover:text-blue-600 transition-colors">
-                            {product[`title${lang.charAt(0).toUpperCase() + lang.slice(1)}`] || product.titleKg}
-                          </h3>
-                        </Link>
-                      ) : (
-                        <h3 className="text-gray-900 font-semibold mb-3 hover:text-blue-600 transition-colors">
-                          {product[`title${lang.charAt(0).toUpperCase() + lang.slice(1)}`] || product.titleKg}
-                        </h3>
-                      )}
-                      <div className="flex items-center justify-between">
-                        <span className="text-amber-500 font-semibold text-xl">
-                          ${product.price?.toFixed(2) || '0.00'}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          {(product.ratingAvg || 0).toFixed(1)}
-                        </span>
-                      </div>
-                      <button
-                        onClick={(e) => handleAddToCart(product, e)}
-                        className="mt-4 w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all"
-                      >
-                        {t('product.addToCart')}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-slate-400">{t('empty.noProducts')}</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Why Choose Us Section */}}
-      <div className="relative py-20">
-        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.08),_transparent_60%)]"></div>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-semibold text-white mb-4">
-              {t('home.whyChooseUs.title')}
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {whyChooseUs.map((item, index) => (
-              <div
-                key={index}
-                className="surface rounded-3xl p-6 text-center hover:-translate-y-2 hover:shadow-[0_24px_55px_-35px_rgba(15,23,42,0.9)] transition-all duration-300"
-              >
-                <div className="w-16 h-16 bg-gradient-to-br from-amber-400/20 via-orange-500/20 to-rose-500/20 border border-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">
-                  {item.icon}
-                </div>
-                <h3 className="text-white font-semibold text-lg mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-slate-300/80 text-sm">
-                  {item.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Customer Reviews Section */}
-      <div className="relative py-20">
-        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top,_rgba(248,250,252,0.08),_transparent_60%)]"></div>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-semibold text-white mb-4">
-              {t('home.customerReviews')}
-            </h2>
-            <p className="text-slate-300/80 max-w-xl mx-auto">
-              {t('home.customerReviewsDesc')}
-            </p>
-          </div>
-          {reviewsLoading ? (
-            <div className="text-center text-slate-400">{t('review.loading')}</div>
-          ) : reviews.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {reviews.map((review, index) => (
-                <div
-                  key={review.id ?? `${review.userId}-${review.createdAt ?? index}`}
-                  className="surface-strong rounded-3xl p-6 hover:-translate-y-2 hover:shadow-[0_24px_55px_-35px_rgba(15,23,42,0.9)] transition-all duration-300"
-                >
-                  <div className="mb-4">
-                    <RatingStars rating={review.rating} size="sm" />
-                  </div>
-                  <p className="text-slate-200 mb-4 italic">
-                    "{review.text}"
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-amber-400 to-rose-500 rounded-full flex items-center justify-center text-slate-950 font-semibold">
-                      {review.userInitial}
-                    </div>
-                    <div>
-                      <p className="text-white font-semibold">{review.userName}</p>
-                    </div>
-                  </div>
-                </div>
+          {loading || featured.length === 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {Array.from({ length: 8 }).map((_, index) => (
+                <SkeletonCard key={`skeleton-${index}`} />
               ))}
             </div>
           ) : (
-            <div className="text-center text-slate-400">
-              {t('empty.noReviews')}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featured.map((product) => {
+                const productId = getProductId(product);
+                return (
+                  <ProductCard
+                    key={productId || product.id || product._id || product.sku}
+                    product={product}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
-      </div>
-
-      {/* CTA Banner */}
-      <div className="relative overflow-hidden py-20">
-        <div className="absolute inset-0 gradient-bg"></div>
-        <div className="absolute inset-0 opacity-20 bg-grid"></div>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h2 className="text-3xl sm:text-4xl font-semibold text-white mb-4">
-            {t('home.cta.title')}
-          </h2>
-          <p className="text-white/90 mb-8 text-lg">
-            {t('home.cta.description')}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/contact"
-              className="px-8 py-3 bg-white/95 text-slate-950 rounded-full font-semibold hover:bg-white transition-all border border-white/50 shadow-[0_12px_25px_-15px_rgba(15,23,42,0.6)]"
-            >
-              {t('home.cta.contact')} ->
-            </Link>
-            <Link
-              to="/catalog"
-              className="px-8 py-3 bg-slate-950/90 text-white rounded-full font-semibold hover:bg-slate-950 transition-all border border-white/20 shadow-[0_12px_25px_-15px_rgba(15,23,42,0.6)]"
-            >
-              {t('home.cta.catalog')} ->
-            </Link>
-          </div>
-        </div>
-      </div>
+      </section>
     </div>
   );
 };
-
-
-
-
-
-
-
-
