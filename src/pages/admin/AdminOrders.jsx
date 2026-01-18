@@ -1,0 +1,39 @@
+﻿import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { AdminLayout } from '../../components/AdminLayout';
+import { AdminOrdersTable } from '../../components/AdminOrdersTable';
+import { SkeletonList } from '../../components/SkeletonList';
+import * as ordersAPI from '../../api/orders';
+
+export const AdminOrders = () => {
+  const { t } = useTranslation();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadOrders();
+  }, []);
+
+  const loadOrders = async () => {
+    try {
+      const data = await ordersAPI.getAll();
+      setOrders(data);
+    } catch (error) {
+      console.error('Error loading orders:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <AdminLayout>
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-6">{t('admin.orders')}</h1>
+      {loading ? (
+        <SkeletonList count={5} />
+      ) : (
+        <AdminOrdersTable orders={orders} onRefresh={loadOrders} />
+      )}
+    </AdminLayout>
+  );
+};
+
