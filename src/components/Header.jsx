@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { ThemeToggle } from './ThemeToggle';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { BurgerMenu } from './BurgerMenu';
 import logo from '../assets/LogoMebelmarket-removebg-preview.png';
 
@@ -28,7 +29,7 @@ export const Header = () => {
             <img
               src={logo}
               alt="MebelMart"
-              className="h-14 sm:h-30 w-auto object-contain"
+               className="h-14 sm:h-16 md:h-18 lg:h-20 w-auto object-contain"
             />
           </Link>
 
@@ -69,6 +70,7 @@ export const Header = () => {
 
           <div className="flex items-center justify-end gap-2 sm:gap-3">
             <ThemeToggle />
+            <LanguageSwitcher />
             {user?.role === 'admin' && (
               <Link
                 to="/admin"
