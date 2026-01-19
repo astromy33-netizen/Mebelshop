@@ -11,7 +11,7 @@ import { AdminGuard } from './utils/AdminGuard';
 
 import { Home } from './pages/Home';
 import { Catalog } from './pages/Catalog';
-import { ProductDetails } from './pages/ProductDetails';
+import ProductDetails from './pages/ProductDetails';
 import { Cart } from './pages/Cart';
 import { Checkout } from './pages/Checkout';
 import { Orders } from './pages/Orders';

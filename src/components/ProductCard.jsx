@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { RatingStars } from "./RatingStars";
 import { FavoriteButton } from "./FavoriteButton";
@@ -8,18 +8,20 @@ import { getProductId } from "../utils/productId";
 export const ProductCard = ({ product }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  console.log(product);
+  
 
   const lang = i18n.language || "kg";
   const titleKey = `title${lang.charAt(0).toUpperCase() + lang.slice(1)}`;
   const title = product?.[titleKey] || product?.titleKg || product?.titleRu || "—";
 
   const price = Number(product?.price || 0);
-  const productId = getProductId(product);
-  const canNavigate = Boolean(productId);
+  const productId = product.id
+  const canNavigate = productId !== null && productId !== undefined;
   const ratingValue = Number(product?.ratingAvg || 0).toFixed(1);
 
   const handleCardClick = () => {
-    if (!canNavigate) return;
+    // if (!canNavigate) return;
     navigate(`/product/${productId}`);
   };
 
@@ -93,13 +95,7 @@ export const ProductCard = ({ product }) => {
       role={canNavigate ? "button" : undefined}
       tabIndex={canNavigate ? 0 : undefined}
     >
-      {canNavigate ? (
-        <Link to={`/product/${productId}`} className="block">
-          {CardInner}
-        </Link>
-      ) : (
-        <div className="block">{CardInner}</div>
-      )}
+      <div className="block">{CardInner}</div>
     </div>
   );
 };
