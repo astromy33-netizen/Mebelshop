@@ -85,8 +85,8 @@ export const FavoriteButton = ({ productId, variant = 'default' }) => {
     <button
       onClick={handleToggle}
       className={`${baseClasses} ${hoverClasses} ${!isFavorite ? 'hover:text-white' : ''} flex items-center justify-center transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/60 active:scale-95 ${
-        isAnimating ? 'scale-[1.08]' : 'scale-100'
-      } ${isFavorite ? 'text-rose-500 shadow-[0_0_18px_rgba(239,68,68,0.45)]' : ''}`}
+        isAnimating ? 'scale-[1.12]' : 'scale-100'
+      } ${isFavorite ? 'text-rose-500 shadow-[0_0_18px_rgba(239,68,68,0.45)]' : ''} opacity-70 hover:opacity-100`}
       aria-pressed={isFavorite}
       aria-label="Toggle favorite"
       type="button"

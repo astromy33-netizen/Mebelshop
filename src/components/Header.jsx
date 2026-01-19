@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { ThemeToggle } from './ThemeToggle';
-import { LanguageSwitcher } from './LanguageSwitcher';
 import { BurgerMenu } from './BurgerMenu';
+import logo from '../assets/LogoMebelmarket-removebg-preview.png';
 
 export const Header = () => {
   const { t } = useTranslation();
@@ -24,8 +24,12 @@ export const Header = () => {
     <header className="bg-white/90 dark:bg-slate-950/95 backdrop-blur-lg shadow-[0_10px_30px_-20px_rgba(0,0,0,0.15)] dark:shadow-[0_10px_30px_-20px_rgba(0,0,0,0.8)] sticky top-0 z-50 border-b border-slate-200/70 dark:border-white/10">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
         <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4">
-          <Link to="/" className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-400 to-rose-400 hover:opacity-90 transition-opacity">
-            MebelMart
+          <Link to="/" className="flex items-center">
+            <img
+              src={logo}
+              alt="MebelMart"
+              className="h-14 sm:h-30 w-auto object-contain"
+            />
           </Link>
 
           <nav className="hidden md:flex items-center justify-center gap-4 lg:gap-8">
@@ -65,7 +69,6 @@ export const Header = () => {
 
           <div className="flex items-center justify-end gap-2 sm:gap-3">
             <ThemeToggle />
-            <LanguageSwitcher />
             {user?.role === 'admin' && (
               <Link
                 to="/admin"
