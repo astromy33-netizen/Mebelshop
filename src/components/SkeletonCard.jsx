@@ -1,6 +1,6 @@
 export const SkeletonCard = () => {
   return (
-    <div className="bg-[#0c121d] rounded-[20px] border border-white/10 shadow-[0_20px_55px_-35px_rgba(6,10,18,0.9)] overflow-hidden animate-fadeIn">
+    <div className="bg-white rounded-[20px] border border-slate-200 shadow-[0_20px_55px_-35px_rgba(6,10,18,0.2)] overflow-hidden animate-fadeIn dark:bg-[#0c121d] dark:border-white/10 dark:shadow-[0_20px_55px_-35px_rgba(6,10,18,0.9)]">
       <div className="h-64 shimmer"></div>
       <div className="p-5">
         <div className="h-5 shimmer rounded mb-3"></div>

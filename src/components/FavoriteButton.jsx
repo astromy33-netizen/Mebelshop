@@ -7,7 +7,18 @@ const readFavorites = () => {
   try {
     const raw = localStorage.getItem(FAVORITES_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed.map(String) : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((item) => {
+        if (item == null) return null;
+        if (typeof item === 'string' || typeof item === 'number') return String(item);
+        if (typeof item === 'object') {
+          const id = item.id ?? item.productId ?? item._id;
+          return id != null ? String(id) : null;
+        }
+        return null;
+      })
+      .filter(Boolean);
   } catch (error) {
     console.error('Error reading favorites:', error);
     return [];

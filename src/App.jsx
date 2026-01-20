@@ -16,6 +16,7 @@ import { Cart } from './pages/Cart';
 import { Checkout } from './pages/Checkout';
 import { Orders } from './pages/Orders';
 import { Booking } from './pages/Booking';
+import { Favorites } from './pages/Favorites';
 import { Profile } from './pages/Profile';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
@@ -54,6 +55,7 @@ function App() {
                       <Route path="/catalog" element={<Catalog />} />
                       <Route path="/product/:id" element={<ProductDetails />} />
                       <Route path="/cart" element={<Cart />} />
+                      <Route path="/favorites" element={<Favorites />} />
                       <Route
                         path="/checkout"
                         element={

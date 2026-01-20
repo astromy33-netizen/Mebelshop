@@ -28,6 +28,9 @@ export const BurgerMenu = () => {
             <Link to="/cart" onClick={() => setIsOpen(false)} className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
               {t('nav.cart')}
             </Link>
+            <Link to="/favorites" onClick={() => setIsOpen(false)} className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+              {t('nav.favorites')}
+            </Link>
             {user ? (
               <>
                 <Link to="/orders" onClick={() => setIsOpen(false)} className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">

@@ -51,6 +51,10 @@ export const Header = () => {
                 </span>
               )}
             </Link>
+            <Link to="/favorites" className="text-slate-700 hover:text-slate-950 dark:text-slate-200 dark:hover:text-white font-medium relative group transition-all duration-300">
+              {t('nav.favorites')}
+              <span className="absolute -bottom-2 left-0 w-0 h-0.5 bg-gradient-to-r from-orange-400 to-rose-400 group-hover:w-full transition-all duration-300"></span>
+            </Link>
             {user ? (
               <>
                 <Link to="/orders" className="text-slate-700 hover:text-slate-950 dark:text-slate-200 dark:hover:text-white font-medium relative group transition-all duration-300">

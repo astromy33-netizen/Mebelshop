@@ -35,7 +35,7 @@ export const ProductCard = ({ product }) => {
 
   const CardInner = (
     <>
-      <div className="relative h-56 sm:h-60 lg:h-64 overflow-hidden bg-slate-900/80">
+      <div className="relative h-56 sm:h-60 lg:h-64 overflow-hidden bg-slate-100 dark:bg-slate-900/80">
         {product?.cover ? (
           <img
             src={product.cover}
@@ -44,7 +44,7 @@ export const ProductCard = ({ product }) => {
             loading="lazy"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-slate-900 text-slate-400">
+          <div className="flex h-full w-full items-center justify-center bg-slate-100 text-slate-400 dark:bg-slate-900">
             {t("product.noImage") || "No Image"}
           </div>
         )}
@@ -60,17 +60,17 @@ export const ProductCard = ({ product }) => {
       </div>
 
       <div className="flex flex-1 flex-col p-5 sm:p-6">
-        <h3 className="mb-2 line-clamp-2 text-lg font-semibold text-slate-100 sm:text-xl">
+        <h3 className="mb-2 line-clamp-2 text-lg font-semibold text-slate-900 dark:text-slate-100 sm:text-xl">
           {title}
         </h3>
 
         <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-slate-300">
+          <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
             <RatingStars rating={product?.ratingAvg || 0} size="sm" />
             <span className="text-sm">{ratingValue}</span>
           </div>
 
-          <span className="text-2xl font-bold text-[#f3c86a] sm:text-3xl">
+          <span className="text-2xl font-bold text-amber-500 dark:text-[#f3c86a] sm:text-3xl">
             ${price.toFixed(2)}
           </span>
         </div>
@@ -87,7 +87,7 @@ export const ProductCard = ({ product }) => {
 
   return (
     <div
-      className={`group relative flex h-full flex-col overflow-hidden rounded-[20px] border border-white/10 bg-[#0c121d] shadow-[0_20px_55px_-35px_rgba(6,10,18,0.9)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_30px_70px_-40px_rgba(6,10,18,0.95)] ${
+      className={`group relative flex h-full flex-col overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-[0_20px_55px_-35px_rgba(6,10,18,0.2)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_30px_70px_-40px_rgba(6,10,18,0.3)] dark:border-white/10 dark:bg-[#0c121d] dark:shadow-[0_20px_55px_-35px_rgba(6,10,18,0.9)] dark:hover:shadow-[0_30px_70px_-40px_rgba(6,10,18,0.95)] ${
         canNavigate ? "cursor-pointer" : ""
       }`}
       onClick={handleCardClick}

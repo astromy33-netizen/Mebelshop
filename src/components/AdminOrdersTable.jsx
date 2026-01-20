@@ -2,7 +2,7 @@
 import { useTranslation } from 'react-i18next';
 import * as ordersAPI from '../api/orders';
 
-export const AdminOrdersTable = ({ orders, onRefresh }) => {
+export const AdminOrdersTable = ({ orders, usersMap = {}, onRefresh }) => {
   const { t } = useTranslation();
   const [updatingId, setUpdatingId] = useState(null);
 
@@ -35,8 +35,42 @@ export const AdminOrdersTable = ({ orders, onRefresh }) => {
         <tbody>
           {orders.map((order) => (
             <tr key={order.id} className="border-b border-gray-200 dark:border-gray-700">
-              <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{order.id}</td>
-              <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{order.userId}</td>
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-700">
+                    {order.items?.[0]?.cover ? (
+                      <img
+                        src={order.items[0].cover}
+                        alt={`Order ${order.id}`}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xs text-gray-400">
+                        N/A
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-gray-700 dark:text-gray-300">{order.id}</span>
+                </div>
+              </td>
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
+                    {usersMap[String(order.userId)]?.avatar ? (
+                      <img
+                        src={usersMap[String(order.userId)].avatar}
+                        alt={`User ${order.userId}`}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xs text-gray-400">
+                        U
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-gray-700 dark:text-gray-300">{order.userId}</span>
+                </div>
+              </td>
               <td className="px-4 py-3 text-gray-700 dark:text-gray-300">${order.total?.toFixed(2)}</td>
               <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{order.status}</td>
               <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
